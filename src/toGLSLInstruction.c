@@ -349,8 +349,7 @@ static void MaskOutTexCoordComponents(const RESOURCE_DIMENSION eResDim, Operand*
         }
         case RESOURCE_DIMENSION_TEXTURECUBE:
         {
-            //Vec2 texcoord. Mask out the other components.
-            psTexCoordOperand->aui32Swizzle[2] = 0xFFFFFFFF;
+            //Vec3 texcoord. Mask out the other component.
             psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
             break;
         }
