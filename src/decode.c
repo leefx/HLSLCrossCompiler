@@ -437,6 +437,12 @@ const uint32_t* DecodeDeclaration(Shader* psShader, const uint32_t* pui32Token, 
             psDecl->value.eTessOutPrim = DecodeTessOutPrim(*pui32Token);
             break;
         }
+        case OPCODE_DCL_STREAM:
+        {
+            psDecl->ui32NumOperands = 1;
+            DecodeOperand(pui32Token+ui32OperandOffset, &psDecl->asOperands[0]);
+            break;
+        }
         case OPCODE_DCL_THREAD_GROUP:
         {
             psDecl->value.aui32WorkGroupSize[0] = pui32Token[1];

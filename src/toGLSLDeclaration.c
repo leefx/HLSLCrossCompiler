@@ -721,194 +721,195 @@ void AddUserOutput(HLSLCrossCompilerContext* psContext, const Declaration* psDec
 
         InOutSignature* psSignature = NULL;
 
-        GetOutputSignatureFromRegister(psDecl->asOperands[0].ui32RegisterNumber, psDecl->asOperands[0].ui32CompMask, &psShader->sInfo, &psSignature);
-
-        switch(psSignature->eComponentType)
-        {
-            case INOUT_COMPONENT_UINT32:
-            {
-                type = "uvec";
-                break;
-            }
-            case INOUT_COMPONENT_SINT32:
-            {
-                type = "ivec";
-                break;
-            }
-            case INOUT_COMPONENT_FLOAT32:
-            {
-                break;
-            }
-        }
-
-        if(HavePrecisionQualifers(psShader->eTargetLanguage))
-        {
-            switch(psOperand->eMinPrecision)
-            {
-                case OPERAND_MIN_PRECISION_DEFAULT:
-                {
-                    Precision = "highp";
-                    break;
-                }
-                case OPERAND_MIN_PRECISION_FLOAT_16:
-                {
-                    Precision = "mediump";
-                    break;
-                }
-                case OPERAND_MIN_PRECISION_FLOAT_2_8:
-                {
-                    Precision = "lowp";
-                    break;
-                }
-                case OPERAND_MIN_PRECISION_SINT_16:
-                {
-                    Precision = "mediump";
-                    //type = "ivec";
-                    break;
-                }
-                case OPERAND_MIN_PRECISION_UINT_16:
-                {
-                    Precision = "mediump";
-                    //type = "uvec";
-                    break;
-                }
-            }
-        }
-
-		switch(psShader->eShaderType)
+        if (GetOutputSignatureFromRegister(psDecl->asOperands[0].ui32RegisterNumber, psDecl->asOperands[0].ui32CompMask, &psShader->sInfo, &psSignature))
 		{
-			case PIXEL_SHADER:
+			switch(psSignature->eComponentType)
 			{
-				switch(psDecl->asOperands[0].eType)
+				case INOUT_COMPONENT_UINT32:
 				{
-                    case OPERAND_TYPE_OUTPUT_COVERAGE_MASK:
-					case OPERAND_TYPE_OUTPUT_DEPTH:
-					{
+					type = "uvec";
+					break;
+				}
+				case INOUT_COMPONENT_SINT32:
+				{
+					type = "ivec";
+					break;
+				}
+				case INOUT_COMPONENT_FLOAT32:
+				{
+					break;
+				}
+			}
 
+			if(HavePrecisionQualifers(psShader->eTargetLanguage))
+			{
+				switch(psOperand->eMinPrecision)
+				{
+					case OPERAND_MIN_PRECISION_DEFAULT:
+					{
+						Precision = "highp";
 						break;
 					}
-					case OPERAND_TYPE_OUTPUT_DEPTH_GREATER_EQUAL:
+					case OPERAND_MIN_PRECISION_FLOAT_16:
 					{
-						bcatcstr(glsl, "#ifdef GL_ARB_conservative_depth\n");
-						bcatcstr(glsl, "#extension GL_ARB_conservative_depth : enable\n");
-						bcatcstr(glsl, "layout (depth_greater) out float gl_FragDepth;\n");
-						bcatcstr(glsl, "#endif\n");
+						Precision = "mediump";
 						break;
 					}
-					case OPERAND_TYPE_OUTPUT_DEPTH_LESS_EQUAL:
+					case OPERAND_MIN_PRECISION_FLOAT_2_8:
 					{
-						bcatcstr(glsl, "#ifdef GL_ARB_conservative_depth\n");
-						bcatcstr(glsl, "#extension GL_ARB_conservative_depth : enable\n");
-						bcatcstr(glsl, "layout (depth_less) out float gl_FragDepth;\n");
-						bcatcstr(glsl, "#endif\n");
+						Precision = "lowp";
 						break;
 					}
-					default:
+					case OPERAND_MIN_PRECISION_SINT_16:
 					{
-						if(WriteToFragData(psContext->psShader->eTargetLanguage))
+						Precision = "mediump";
+						//type = "ivec";
+						break;
+					}
+					case OPERAND_MIN_PRECISION_UINT_16:
+					{
+						Precision = "mediump";
+						//type = "uvec";
+						break;
+					}
+				}
+			}
+
+			switch(psShader->eShaderType)
+			{
+				case PIXEL_SHADER:
+				{
+					switch(psDecl->asOperands[0].eType)
+					{
+						case OPERAND_TYPE_OUTPUT_COVERAGE_MASK:
+						case OPERAND_TYPE_OUTPUT_DEPTH:
 						{
-							bformata(glsl, "#define Output%d gl_FragData[%d]\n", psDecl->asOperands[0].ui32RegisterNumber, psDecl->asOperands[0].ui32RegisterNumber);
+
+							break;
 						}
-						else
+						case OPERAND_TYPE_OUTPUT_DEPTH_GREATER_EQUAL:
 						{
-							const char* OutputName = GetDeclaredOutputName(psContext, PIXEL_SHADER, psOperand);
-
-                            if(HaveInOutLocationQualifier(psContext->psShader->eTargetLanguage) || HaveLimitedInOutLocationQualifier(psContext->psShader->eTargetLanguage))
-                            {
-                                uint32_t index = 0;
-                                uint32_t renderTarget = psDecl->asOperands[0].ui32RegisterNumber;
-
-                                if((psContext->flags & HLSLCC_FLAG_DUAL_SOURCE_BLENDING) && DualSourceBlendSupported(psContext->psShader->eTargetLanguage))
-                                {
-                                    if(renderTarget > 0)
-                                    {
-                                        renderTarget = 0;
-                                        index = 1;
-                                    }
-                                    bformata(glsl, "layout(location = %d, index = %d) ", renderTarget, index);
-                                }
-                                else
-                                {
-                                    bformata(glsl, "layout(location = %d) ", renderTarget);
-                                }
-                            }
-
-							bformata(glsl, "out %s %s4 %s;\n", Precision, type, OutputName);
-							bformata(glsl, "#define Output%d %s\n", psDecl->asOperands[0].ui32RegisterNumber, OutputName);
+							bcatcstr(glsl, "#ifdef GL_ARB_conservative_depth\n");
+							bcatcstr(glsl, "#extension GL_ARB_conservative_depth : enable\n");
+							bcatcstr(glsl, "layout (depth_greater) out float gl_FragDepth;\n");
+							bcatcstr(glsl, "#endif\n");
+							break;
 						}
-						break;
+						case OPERAND_TYPE_OUTPUT_DEPTH_LESS_EQUAL:
+						{
+							bcatcstr(glsl, "#ifdef GL_ARB_conservative_depth\n");
+							bcatcstr(glsl, "#extension GL_ARB_conservative_depth : enable\n");
+							bcatcstr(glsl, "layout (depth_less) out float gl_FragDepth;\n");
+							bcatcstr(glsl, "#endif\n");
+							break;
+						}
+						default:
+						{
+							if(WriteToFragData(psContext->psShader->eTargetLanguage))
+							{
+								bformata(glsl, "#define Output%d gl_FragData[%d]\n", psDecl->asOperands[0].ui32RegisterNumber, psDecl->asOperands[0].ui32RegisterNumber);
+							}
+							else
+							{
+								const char* OutputName = GetDeclaredOutputName(psContext, PIXEL_SHADER, psOperand);
+
+								if(HaveInOutLocationQualifier(psContext->psShader->eTargetLanguage) || HaveLimitedInOutLocationQualifier(psContext->psShader->eTargetLanguage))
+								{
+									uint32_t index = 0;
+									uint32_t renderTarget = psDecl->asOperands[0].ui32RegisterNumber;
+
+									if((psContext->flags & HLSLCC_FLAG_DUAL_SOURCE_BLENDING) && DualSourceBlendSupported(psContext->psShader->eTargetLanguage))
+									{
+										if(renderTarget > 0)
+										{
+											renderTarget = 0;
+											index = 1;
+										}
+										bformata(glsl, "layout(location = %d, index = %d) ", renderTarget, index);
+									}
+									else
+									{
+										bformata(glsl, "layout(location = %d) ", renderTarget);
+									}
+								}
+
+								bformata(glsl, "out %s %s4 %s;\n", Precision, type, OutputName);
+								bformata(glsl, "#define Output%d %s\n", psDecl->asOperands[0].ui32RegisterNumber, OutputName);
+							}
+							break;
+						}
 					}
+					break;
 				}
-				break;
-			}
-			case VERTEX_SHADER:
-			{
-				int iNumComponents = 4;//GetMaxComponentFromComponentMask(&psDecl->asOperands[0]);
-                const char* Interpolation = "";
-				const char* OutputName = GetDeclaredOutputName(psContext, VERTEX_SHADER, psOperand);
-
-                if(psContext->psDependencies)
-                {
-                    if(psShader->eShaderType == VERTEX_SHADER)
-                    {
-                        Interpolation = GetInterpolationString(psContext->psDependencies->aePixelInputInterpolation[psDecl->asOperands[0].ui32RegisterNumber]);
-                    }
-                }
-
-                if(HaveInOutLocationQualifier(psContext->psShader->eTargetLanguage))
-                {
-                    bformata(glsl, "layout(location = %d) ", psDecl->asOperands[0].ui32RegisterNumber);
-                }
-
-				if(InOutSupported(psContext->psShader->eTargetLanguage))
+				case VERTEX_SHADER:
 				{
-					bformata(glsl, "%s out %s %s%d %s;\n", Interpolation, Precision, type, iNumComponents, OutputName);
+					int iNumComponents = 4;//GetMaxComponentFromComponentMask(&psDecl->asOperands[0]);
+					const char* Interpolation = "";
+					const char* OutputName = GetDeclaredOutputName(psContext, VERTEX_SHADER, psOperand);
+
+					if(psContext->psDependencies)
+					{
+						if(psShader->eShaderType == VERTEX_SHADER)
+						{
+							Interpolation = GetInterpolationString(psContext->psDependencies->aePixelInputInterpolation[psDecl->asOperands[0].ui32RegisterNumber]);
+						}
+					}
+
+					if(HaveInOutLocationQualifier(psContext->psShader->eTargetLanguage))
+					{
+						bformata(glsl, "layout(location = %d) ", psDecl->asOperands[0].ui32RegisterNumber);
+					}
+
+					if(InOutSupported(psContext->psShader->eTargetLanguage))
+					{
+						bformata(glsl, "%s out %s %s%d %s;\n", Interpolation, Precision, type, iNumComponents, OutputName);
+					}
+					else
+					{
+						bformata(glsl, "%s varying %s %s%d %s;\n", Interpolation, Precision, type, iNumComponents, OutputName);
+					}
+					bformata(glsl, "#define Output%d %s\n", psDecl->asOperands[0].ui32RegisterNumber, OutputName);
+
+					break;
 				}
-				else
+				case GEOMETRY_SHADER:
 				{
-					bformata(glsl, "%s varying %s %s%d %s;\n", Interpolation, Precision, type, iNumComponents, OutputName);
+					const char* OutputName = GetDeclaredOutputName(psContext, GEOMETRY_SHADER, psOperand);
+
+					if(HaveInOutLocationQualifier(psContext->psShader->eTargetLanguage))
+					{
+						bformata(glsl, "layout(location = %d) ", psDecl->asOperands[0].ui32RegisterNumber);
+					}
+
+					bformata(glsl, "out %s4 %s;\n", type, OutputName);
+					bformata(glsl, "#define Output%d %s\n", psDecl->asOperands[0].ui32RegisterNumber, OutputName);
+					break;
 				}
-				bformata(glsl, "#define Output%d %s\n", psDecl->asOperands[0].ui32RegisterNumber, OutputName);
+				case HULL_SHADER:
+				{
+					const char* OutputName = GetDeclaredOutputName(psContext, HULL_SHADER, psOperand);
 
-				break;
-			}
-			case GEOMETRY_SHADER:
-			{
-				const char* OutputName = GetDeclaredOutputName(psContext, GEOMETRY_SHADER, psOperand);
+					ASSERT(psDecl->asOperands[0].ui32RegisterNumber!=0);//Reg 0 should be gl_out[gl_InvocationID].gl_Position.
 
-                if(HaveInOutLocationQualifier(psContext->psShader->eTargetLanguage))
-                {
-                    bformata(glsl, "layout(location = %d) ", psDecl->asOperands[0].ui32RegisterNumber);
-                }
-
-				bformata(glsl, "out %s4 %s;\n", type, OutputName);
-				bformata(glsl, "#define Output%d %s\n", psDecl->asOperands[0].ui32RegisterNumber, OutputName);
-				break;
-			}
-			case HULL_SHADER:
-			{
-				const char* OutputName = GetDeclaredOutputName(psContext, HULL_SHADER, psOperand);
-
-                ASSERT(psDecl->asOperands[0].ui32RegisterNumber!=0);//Reg 0 should be gl_out[gl_InvocationID].gl_Position.
-
-                if(HaveInOutLocationQualifier(psContext->psShader->eTargetLanguage))
-                {
-                    bformata(glsl, "layout(location = %d) ", psDecl->asOperands[0].ui32RegisterNumber);
-                }
-				bformata(glsl, "out %s4 %s[];\n", type, OutputName);
-				bformata(glsl, "#define Output%d %s[gl_InvocationID]\n", psDecl->asOperands[0].ui32RegisterNumber, OutputName);
-				break;
-			}
-			case DOMAIN_SHADER:
-			{
-				const char* OutputName = GetDeclaredOutputName(psContext, DOMAIN_SHADER, psOperand);
-                if(HaveInOutLocationQualifier(psContext->psShader->eTargetLanguage))
-                {
-                    bformata(glsl, "layout(location = %d) ", psDecl->asOperands[0].ui32RegisterNumber);
-                }
-				bformata(glsl, "out %s4 %s;\n", type, OutputName);
-				bformata(glsl, "#define Output%d %s\n", psDecl->asOperands[0].ui32RegisterNumber, OutputName);
-				break;
+					if(HaveInOutLocationQualifier(psContext->psShader->eTargetLanguage))
+					{
+						bformata(glsl, "layout(location = %d) ", psDecl->asOperands[0].ui32RegisterNumber);
+					}
+					bformata(glsl, "out %s4 %s[];\n", type, OutputName);
+					bformata(glsl, "#define Output%d %s[gl_InvocationID]\n", psDecl->asOperands[0].ui32RegisterNumber, OutputName);
+					break;
+				}
+				case DOMAIN_SHADER:
+				{
+					const char* OutputName = GetDeclaredOutputName(psContext, DOMAIN_SHADER, psOperand);
+					if(HaveInOutLocationQualifier(psContext->psShader->eTargetLanguage))
+					{
+						bformata(glsl, "layout(location = %d) ", psDecl->asOperands[0].ui32RegisterNumber);
+					}
+					bformata(glsl, "out %s4 %s;\n", type, OutputName);
+					bformata(glsl, "#define Output%d %s\n", psDecl->asOperands[0].ui32RegisterNumber, OutputName);
+					break;
+				}
 			}
 		}
     }
@@ -1768,7 +1769,10 @@ Would generate a vec2 and a vec3. We discard the second one making .z invalid!
             }
             break;
         }
-
+		case OPCODE_DCL_STREAM:
+			{
+				break; // FX: TODO
+			}
         case OPCODE_DCL_THREAD_GROUP:
         {
             bformata(glsl, "layout(local_size_x = %d, local_size_y = %d, local_size_z = %d) in;\n",
