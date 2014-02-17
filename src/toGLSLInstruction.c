@@ -338,38 +338,44 @@ static void MaskOutTexCoordComponents(const RESOURCE_DIMENSION eResDim, Operand*
             psTexCoordOperand->aui32Swizzle[1] = 0xFFFFFFFF;
             psTexCoordOperand->aui32Swizzle[2] = 0xFFFFFFFF;
             psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
+			psTexCoordOperand->ui32CompMask = OPERAND_4_COMPONENT_MASK_X;
             break;
         }
         case RESOURCE_DIMENSION_TEXTURE2D:
         {
             //Vec2 texcoord. Mask out the other components.
             psTexCoordOperand->aui32Swizzle[2] = 0xFFFFFFFF;
-            psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
+			psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
+			psTexCoordOperand->ui32CompMask = OPERAND_4_COMPONENT_MASK_X|OPERAND_4_COMPONENT_MASK_Y;
             break;
         }
         case RESOURCE_DIMENSION_TEXTURECUBE:
         {
             //Vec3 texcoord. Mask out the other component.
-            psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
+			psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
+			psTexCoordOperand->ui32CompMask = OPERAND_4_COMPONENT_MASK_X|OPERAND_4_COMPONENT_MASK_Y|OPERAND_4_COMPONENT_MASK_Z;
             break;
         }
         case RESOURCE_DIMENSION_TEXTURE3D:
         {
             //Vec3 texcoord. Mask out the other component.
-            psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
+			psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
+			psTexCoordOperand->ui32CompMask = OPERAND_4_COMPONENT_MASK_X|OPERAND_4_COMPONENT_MASK_Y|OPERAND_4_COMPONENT_MASK_Z;
             break;
         }
         case RESOURCE_DIMENSION_TEXTURE1DARRAY:
         {
             //Vec2 texcoord. Mask out the other components.
             psTexCoordOperand->aui32Swizzle[2] = 0xFFFFFFFF;
-            psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
+			psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
+			psTexCoordOperand->ui32CompMask = OPERAND_4_COMPONENT_MASK_X|OPERAND_4_COMPONENT_MASK_Y;
             break;
         }
         case RESOURCE_DIMENSION_TEXTURE2DARRAY:
         {
             //Vec3 texcoord. Mask out the other component.
-            psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
+			psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
+			psTexCoordOperand->ui32CompMask = OPERAND_4_COMPONENT_MASK_X|OPERAND_4_COMPONENT_MASK_Y|OPERAND_4_COMPONENT_MASK_Z;
             break;
         }
         case RESOURCE_DIMENSION_TEXTURECUBEARRAY:
