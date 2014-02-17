@@ -312,7 +312,7 @@ static void ReadResources(const uint32_t* pui32Tokens,//in
     const uint32_t* pui32ConstantBuffers;
     const uint32_t* pui32ResourceBindings;
     const uint32_t* pui32FirstToken = pui32Tokens;
-    uint32_t i;
+    uint32_t i, j;
 	uint32_t aui32NextConstBufferIndex[RGROUP_COUNT];
 
     const uint32_t ui32NumConstantBuffers = *pui32Tokens++;
@@ -357,7 +357,24 @@ static void ReadResources(const uint32_t* pui32Tokens,//in
     for(i=0; i < ui32NumConstantBuffers; ++i)
     {
         pui32ConstantBuffers = ReadConstantBuffer(psShaderInfo, pui32FirstToken, pui32ConstantBuffers, psConstantBuffers+i);
-    }
+	}
+
+	// link constant buffer to resource by name ?
+	for(i=0; i < ui32NumResourceBindings; ++i)
+	{
+		ResourceGroup eRGroup;
+		eRGroup = ResourceTypeToResourceGroup(psResBindings[i].eType);
+
+		ASSERT(psResBindings[i].ui32BindPoint < MAX_RESOURCE_BINDINGS);
+		for (j=0; j < ui32NumConstantBuffers; ++j)
+		{
+			if (strcmp(psResBindings[i].Name, psConstantBuffers[j].Name) == 0)
+			{
+				psShaderInfo->aui32ResourceMap[eRGroup][psResBindings[i].ui32BindPoint] = j;
+				break;
+			}
+		}
+	}
 }
 
 static const uint16_t* ReadClassType(const uint32_t* pui32FirstInterfaceToken, const uint16_t* pui16Tokens, ClassType* psClassType)
@@ -472,7 +489,7 @@ void GetConstantBufferFromBindingPoint(const ResourceGroup eGroup, const uint32_
     *ppsConstBuf = psShaderInfo->psConstantBuffers + index;
 }
 
-int GetResourceFromBindingPoint(const ResourceType eGroup, uint32_t const ui32BindPoint, ShaderInfo* psShaderInfo, ResourceBinding** ppsOutBinding)
+int GetResourceFromBindingPoint(const ResourceGroup eGroup, const uint32_t ui32BindPoint, ShaderInfo* psShaderInfo, ResourceBinding** ppsOutBinding)
 {
     uint32_t i;
     const uint32_t ui32NumBindings = psShaderInfo->ui32NumResourceBindings;
