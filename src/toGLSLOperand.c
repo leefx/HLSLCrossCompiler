@@ -969,74 +969,75 @@ static void TranslateVariableName(HLSLCrossCompilerContext* psContext, const Ope
             {
                 //Work out the variable name. Don't apply swizzle to that variable yet.
 
-                GetShaderVarFromOffset(psOperand->aui32ArraySizes[1], psOperand->aui32Swizzle, psCBuf, &psVarType, &index);
-
-				bformata(glsl, "%s", psVarType->FullName);
-
-				//Dx9 only?
-				if(psOperand->psSubOperand[0] != NULL)
+                if (GetShaderVarFromOffset(psOperand->aui32ArraySizes[1], psOperand->aui32Swizzle, psCBuf, &psVarType, &index))
 				{
-					SHADER_VARIABLE_TYPE eType = GetOperandDataType(psContext, psOperand->psSubOperand[0]);
-					if(eType != SVT_INT && eType != SVT_UINT)
+					bformata(glsl, "%s", psVarType->FullName);
+
+					//Dx9 only?
+					if(psOperand->psSubOperand[0] != NULL)
 					{
-						bcatcstr(glsl, "[int("); //Indexes must be integral.
-						TranslateOperand(psContext, psOperand->psSubOperand[0], TO_FLAG_NONE);
-						bcatcstr(glsl, ")]");
+						SHADER_VARIABLE_TYPE eType = GetOperandDataType(psContext, psOperand->psSubOperand[0]);
+						if(eType != SVT_INT && eType != SVT_UINT)
+						{
+							bcatcstr(glsl, "[int("); //Indexes must be integral.
+							TranslateOperand(psContext, psOperand->psSubOperand[0], TO_FLAG_NONE);
+							bcatcstr(glsl, ")]");
+						}
+						else
+						{
+							bcatcstr(glsl, "["); //Indexes must be integral.
+							TranslateOperand(psContext, psOperand->psSubOperand[0], TO_FLAG_NONE);
+							bcatcstr(glsl, "]");
+						}
+
+						ASSERT(index == 0 || index == -1);
 					}
 					else
+					if(index != -1 && psOperand->psSubOperand[1] != NULL)
 					{
-						bcatcstr(glsl, "["); //Indexes must be integral.
-						TranslateOperand(psContext, psOperand->psSubOperand[0], TO_FLAG_NONE);
-						bcatcstr(glsl, "]");
+						//Array of matrices is treated as array of vec4s
+						if(index != -1)
+						{
+							SHADER_VARIABLE_TYPE eType = GetOperandDataType(psContext, psOperand->psSubOperand[1]);
+							if(eType != SVT_INT && eType != SVT_UINT)
+							{
+								bcatcstr(glsl, "[int(");
+								TranslateOperand(psContext, psOperand->psSubOperand[1], TO_FLAG_NONE);
+								bformata(glsl, ") + %d]", index);
+							}
+							else
+							{
+								bcatcstr(glsl, "[");
+								TranslateOperand(psContext, psOperand->psSubOperand[1], TO_FLAG_NONE);
+								bformata(glsl, " + %d]", index);
+							}
+						}
 					}
-
-					ASSERT(index == 0 || index == -1);
-				}
-				else
-				if(index != -1 && psOperand->psSubOperand[1] != NULL)
-				{
-					//Array of matrices is treated as array of vec4s
-					if(index != -1)
+					else if(index != -1)
+					{
+						bformata(glsl, "[%d]", index);
+					}
+					else if(psOperand->psSubOperand[1] != NULL)
 					{
 						SHADER_VARIABLE_TYPE eType = GetOperandDataType(psContext, psOperand->psSubOperand[1]);
 						if(eType != SVT_INT && eType != SVT_UINT)
 						{
-							bcatcstr(glsl, "[int(");
+							bcatcstr(glsl, "[");
 							TranslateOperand(psContext, psOperand->psSubOperand[1], TO_FLAG_NONE);
-							bformata(glsl, ") + %d]", index);
+							bcatcstr(glsl, "]");
 						}
 						else
 						{
-							bcatcstr(glsl, "[");
+							bcatcstr(glsl, "[int(");
 							TranslateOperand(psContext, psOperand->psSubOperand[1], TO_FLAG_NONE);
-							bformata(glsl, " + %d]", index);
+							bcatcstr(glsl, ")]");
 						}
 					}
-				}
-				else if(index != -1)
-                {
-                    bformata(glsl, "[%d]", index);
-                }
-				else if(psOperand->psSubOperand[1] != NULL)
-				{
-					SHADER_VARIABLE_TYPE eType = GetOperandDataType(psContext, psOperand->psSubOperand[1]);
-					if(eType != SVT_INT && eType != SVT_UINT)
-					{
-						bcatcstr(glsl, "[");
-						TranslateOperand(psContext, psOperand->psSubOperand[1], TO_FLAG_NONE);
-						bcatcstr(glsl, "]");
-					}
-					else
-					{
-						bcatcstr(glsl, "[int(");
-						TranslateOperand(psContext, psOperand->psSubOperand[1], TO_FLAG_NONE);
-						bcatcstr(glsl, ")]");
-					}
-				}
 
-				if(psVarType->Class == SVC_SCALAR)
-				{
-					*pui32IgnoreSwizzle = 1;
+					if(psVarType->Class == SVC_SCALAR)
+					{
+						*pui32IgnoreSwizzle = 1;
+					}
 				}
             }
             break;
