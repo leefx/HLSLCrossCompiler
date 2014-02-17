@@ -425,7 +425,7 @@ static void TranslateTextureSample(HLSLCrossCompilerContext* psContext, Instruct
     {
         case RESOURCE_DIMENSION_TEXTURE1D:
         {
-            coordType = "vec2";
+			coordType = (ui32Flags & TEXSMP_FLAG_DEPTHCOMPARE) ? "vec3" : "vec2";
             gradSwizzle = ".x";
             ui32NumOffsets = 1;
             if(!iHaveOverloadedTexFuncs)
@@ -440,7 +440,7 @@ static void TranslateTextureSample(HLSLCrossCompilerContext* psContext, Instruct
         }
         case RESOURCE_DIMENSION_TEXTURE2D:
         {
-            coordType = "vec3";
+			coordType = (ui32Flags & TEXSMP_FLAG_DEPTHCOMPARE) ? "vec3" : "vec2";
             gradSwizzle = ".xy";
             ui32NumOffsets = 2;
             if(!iHaveOverloadedTexFuncs)
