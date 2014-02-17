@@ -1418,7 +1418,8 @@ Would generate a vec2 and a vec3. We discard the second one making .z invalid!
             }
 			break;
 		}
-        case OPCODE_DCL_INPUT_PS:
+		case OPCODE_DCL_INPUT_PS:
+		case OPCODE_DCL_INPUT_PS_SIV:
         {
             const Operand* psOperand = &psDecl->asOperands[0];
             int iNumComponents = 4;//GetMaxComponentFromComponentMask(psOperand);
