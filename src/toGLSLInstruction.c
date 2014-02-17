@@ -2656,9 +2656,9 @@ void TranslateInstruction(HLSLCrossCompilerContext* psContext, Instruction* psIn
             TranslateOperand(psContext, &psInst->asOperands[3], TO_FLAG_INTEGER);
             bcatcstr(glsl, ", ");
             TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_INTEGER);
-            bcatcstr(glsl, ", ");
+            bcatcstr(glsl, ".x, ");
             TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
-            bcatcstr(glsl, ");\n");
+            bcatcstr(glsl, ".x);\n");
             break;
         }
         case OPCODE_CUT:
