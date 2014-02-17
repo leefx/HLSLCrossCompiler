@@ -342,6 +342,7 @@ static void MaskOutTexCoordComponents(const RESOURCE_DIMENSION eResDim, Operand*
             break;
         }
         case RESOURCE_DIMENSION_TEXTURE2D:
+        case RESOURCE_DIMENSION_TEXTURE1DARRAY:
         {
             //Vec2 texcoord. Mask out the other components.
             psTexCoordOperand->aui32Swizzle[2] = 0xFFFFFFFF;
@@ -350,12 +351,6 @@ static void MaskOutTexCoordComponents(const RESOURCE_DIMENSION eResDim, Operand*
             break;
         }
         case RESOURCE_DIMENSION_TEXTURECUBE:
-        {
-            //Vec3 texcoord. Mask out the other component.
-			psTexCoordOperand->aui32Swizzle[3] = 0xFFFFFFFF;
-			psTexCoordOperand->ui32CompMask = OPERAND_4_COMPONENT_MASK_X|OPERAND_4_COMPONENT_MASK_Y|OPERAND_4_COMPONENT_MASK_Z;
-            break;
-        }
         case RESOURCE_DIMENSION_TEXTURE3D:
         {
             //Vec3 texcoord. Mask out the other component.
@@ -1345,6 +1340,7 @@ void SetDataTypes(HLSLCrossCompilerContext* psContext, Instruction* psInst, cons
         case OPCODE_AND:
         case OPCODE_OR:
         case OPCODE_XOR:
+        case OPCODE_NOT:
             {
                 eNewType = SVT_INT;
                 break;
@@ -3788,6 +3784,30 @@ void TranslateInstruction(HLSLCrossCompilerContext* psContext, Instruction* psIn
             break;
 		}
 
+        case OPCODE_NOT:
+        {
+            #ifdef _DEBUG
+            AddIndentation(psContext);
+            bcatcstr(glsl, "//INOT\n");
+            #endif
+            AddIndentation(psContext);
+            TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
+
+            bcatcstr(glsl, " = ~(");
+            TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
+            bcatcstr(glsl, ");\n");
+            break;
+        }
+        case OPCODE_XOR:
+        {
+            #ifdef _DEBUG
+            AddIndentation(psContext);
+            bcatcstr(glsl, "//XOR\n");
+            #endif
+
+            CallBinaryOp(psContext, "^", psInst, 0, 1, 2, TO_FLAG_INTEGER);
+            break;
+        }
         case OPCODE_SWAPC:
         case OPCODE_DMAX:
         case OPCODE_DMIN:

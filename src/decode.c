@@ -914,6 +914,7 @@ const uint32_t* DeocdeInstruction(const uint32_t* pui32Token, Instruction* psIns
         case OPCODE_RCP:
 		case OPCODE_DERIV_RTX:
 		case OPCODE_DERIV_RTY:
+        case OPCODE_NOT:
         {
             psInst->ui32NumOperands = 2;
             ui32OperandOffset += DecodeOperand(pui32Token+ui32OperandOffset, &psInst->asOperands[0]);
@@ -934,6 +935,7 @@ const uint32_t* DeocdeInstruction(const uint32_t* pui32Token, Instruction* psIns
 		case OPCODE_DP4:
         case OPCODE_NE:
         case OPCODE_OR:
+        case OPCODE_XOR:
         case OPCODE_LT:
         case OPCODE_IEQ:
         case OPCODE_IADD:
