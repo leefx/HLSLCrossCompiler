@@ -74,11 +74,12 @@ void DeclareConstBufferShaderVariable(bstring glsl, const char* Name, const stru
 	}
 	else if(psType->Class == SVC_MATRIX_COLUMNS || psType->Class == SVC_MATRIX_ROWS)
     {
+		ASSERT(psType->Columns > 1 && psType->Rows > 1);
         switch(psType->Type)
         {
             case SVT_FLOAT:
             {
-                bformata(glsl, "\tvec4 %s[4", Name);
+                bformata(glsl, "\tmat%dx%d %s", psType->Columns, psType->Rows, Name);
                 break;
             }
 			default:
@@ -89,9 +90,8 @@ void DeclareConstBufferShaderVariable(bstring glsl, const char* Name, const stru
         }
 		if(psType->Elements > 1)
 		{
-			bformata(glsl, " * %d", psType->Elements);
+			bformata(glsl, "[%d]", psType->Elements);
 		}
-		bformata(glsl, "]");
     }
     else
     if(psType->Class == SVC_VECTOR)
