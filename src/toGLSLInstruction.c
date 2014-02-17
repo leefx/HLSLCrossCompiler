@@ -658,7 +658,8 @@ static void TranslateTextureSample(HLSLCrossCompilerContext* psContext, Instruct
 
 static ShaderVarType* LookupStructuredVar(HLSLCrossCompilerContext* psContext,
 								   Operand* psResource,
-								   Operand* psByteOffset)
+								   Operand* psByteOffset,
+								   ResourceGroup eGroup)
 {
 	ConstantBuffer* psCBuf = NULL;
 	ShaderVarType* psVarType = NULL;
@@ -687,7 +688,7 @@ static ShaderVarType* LookupStructuredVar(HLSLCrossCompilerContext* psContext,
 		break;
 	}
 
-	GetConstantBufferFromBindingPoint(RGROUP_UAV, psResource->ui32RegisterNumber, &psContext->psShader->sInfo, &psCBuf);
+	GetConstantBufferFromBindingPoint(eGroup, psResource->ui32RegisterNumber, &psContext->psShader->sInfo, &psCBuf);
 	
 	found = GetShaderVarFromOffset(vec4Offset, aui32Swizzle, psCBuf, &psVarType, &index);
 	ASSERT(found);
@@ -718,7 +719,7 @@ static void TranslateShaderStorageStore(HLSLCrossCompilerContext* psContext, Ins
 		psDestByteOff = &psInst->asOperands[2];
 		psSrc = &psInst->asOperands[3];
 		structured = 1;
-		psVarType = LookupStructuredVar(psContext, psDest, psDestByteOff);
+		psVarType = LookupStructuredVar(psContext, psDest, psDestByteOff, RGROUP_TEXTURE);
 		break;
 	case OPCODE_STORE_RAW:
 		psDest = &psInst->asOperands[0];
@@ -819,7 +820,7 @@ static void TranslateShaderStorageLoad(HLSLCrossCompilerContext* psContext, Inst
 		psSrc = &psInst->asOperands[3];
 		structured = 1;
 		ASSERT(((int*)psSrcByteOff->afImmediates)[0] == 0); //TODO: byte-offset. Fail assert if there is one.
-		psVarType = LookupStructuredVar(psContext, psSrc, psSrcByteOff);
+		psVarType = LookupStructuredVar(psContext, psSrc, psSrcByteOff, RGROUP_TEXTURE);
 		break;
 	case OPCODE_LD_RAW:
 		psDest = &psInst->asOperands[0];
@@ -1138,7 +1139,7 @@ void TranslateAtomicMemOp(HLSLCrossCompilerContext* psContext, Instruction* psIn
 
     AddIndentation(psContext);
 
-	psVarType = LookupStructuredVar(psContext, dest, destAddr);
+	psVarType = LookupStructuredVar(psContext, dest, destAddr, RGROUP_UAV);
 
 	if(previousValue)
 	{
@@ -1379,7 +1380,7 @@ void SetDataTypes(HLSLCrossCompilerContext* psContext, Instruction* psInst, cons
 			{
 				Operand* dest = &psInst->asOperands[1];
 				Operand* destAddr = &psInst->asOperands[2];
-				ShaderVarType* type = LookupStructuredVar(psContext, dest, destAddr);
+				ShaderVarType* type = LookupStructuredVar(psContext, dest, destAddr, RGROUP_UAV);
 				eNewType = type->Type;
 				break;
 			}
