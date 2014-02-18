@@ -515,6 +515,11 @@ static void TranslateTextureSample(HLSLCrossCompilerContext* psContext, Instruct
             coordType = "vec4";
             gradSwizzle = ".xy";
             ui32NumOffsets = 2;
+			// no support of textureLod for sampler2DArrayShadow
+			if (ui32Flags & TEXSMP_FLAG_DEPTHCOMPARE && (ui32Flags & TEXSMP_FLAG_FIRSTLOD || ui32Flags & TEXSMP_FLAG_FIRSTLOD))
+			{
+				ui32Flags &= ~(TEXSMP_FLAG_FIRSTLOD | TEXSMP_FLAG_FIRSTLOD);
+			}
             break;
         }
         case RESOURCE_DIMENSION_TEXTURECUBEARRAY:
