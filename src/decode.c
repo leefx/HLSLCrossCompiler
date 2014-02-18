@@ -271,7 +271,14 @@ uint32_t DecodeOperand (const uint32_t *pui32Tokens, Operand* psOperand)
         for(i=0; i< psOperand->iNumComponents; ++i)
         {
             psOperand->afImmediates[i] = *((float*)(&pui32Tokens[ui32NumTokens]));
-            ui32NumTokens ++;
+			// check if integer ...
+			// if only one component is denormalized, then we have integers
+			if ((pui32Tokens[ui32NumTokens] & 0x7f800000) == 0 && (pui32Tokens[ui32NumTokens] & 0x7fffff) != 0)
+			{
+				psOperand->iIntegerImmediate = 1;
+			}
+			ui32NumTokens ++;
+			
         }
     }
     else
