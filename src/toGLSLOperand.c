@@ -626,8 +626,7 @@ static void TranslateVariableName(HLSLCrossCompilerContext* psContext, const Ope
     *pui32IgnoreSwizzle = 0;
 
     if(psOperand->eType != OPERAND_TYPE_IMMEDIATE32 &&
-        psOperand->eType != OPERAND_TYPE_IMMEDIATE64 &&
-        psOperand->eType != OPERAND_TYPE_CONSTANT_BUFFER)
+        psOperand->eType != OPERAND_TYPE_IMMEDIATE64)
     {
 		const uint32_t swizCount = psOperand->iNumComponents;
 		SHADER_VARIABLE_TYPE eType = GetOperandDataType(psContext, psOperand);
