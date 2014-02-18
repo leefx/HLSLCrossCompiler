@@ -3614,6 +3614,7 @@ void TranslateInstruction(HLSLCrossCompilerContext* psContext, Instruction* psIn
         case OPCODE_UBFE:
         case OPCODE_IBFE:
         {
+            const uint32_t destElemCount = GetNumSwizzleElements(&psInst->asOperands[0]);
 #ifdef _DEBUG
             AddIndentation(psContext);
             if(psInst->eOpcode == OPCODE_UBFE)
@@ -3624,12 +3625,14 @@ void TranslateInstruction(HLSLCrossCompilerContext* psContext, Instruction* psIn
             AddIndentation(psContext);
             TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
             bcatcstr(glsl, " = bitfieldExtract(");
-            TranslateOperand(psContext, &psInst->asOperands[3], TO_FLAG_NONE);
+            TranslateOperand(psContext, &psInst->asOperands[3], TO_FLAG_INTEGER);
             bcatcstr(glsl, ", ");
-            TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_NONE);
-            bcatcstr(glsl, ", ");
-            TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_NONE);
-            bcatcstr(glsl, ");\n");
+            TranslateOperand(psContext, &psInst->asOperands[2], TO_FLAG_INTEGER);
+            bcatcstr(glsl, ".x, ");
+            TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
+            bcatcstr(glsl, ".x)");
+            AddSwizzleUsingElementCount(psContext, destElemCount);
+            bcatcstr(glsl, ";\n");
             break;
         }
         case OPCODE_RCP:
