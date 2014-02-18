@@ -101,6 +101,47 @@ static void AddComparision(HLSLCrossCompilerContext* psContext, Instruction* psI
     }
 }
 
+void CallUnaryOp(HLSLCrossCompilerContext* psContext, const char* name, Instruction* psInst, 
+				  int dest, int src0, uint32_t dataType)
+{
+	bstring glsl = *psContext->currentGLSLString;
+	uint32_t src0SwizCount = GetNumSwizzleElements(&psInst->asOperands[src0]);
+	uint32_t dstSwizCount = GetNumSwizzleElements(&psInst->asOperands[dest]);
+
+	AddIndentation(psContext);
+
+	if(src0SwizCount == dstSwizCount)
+	{
+		TranslateOperand(psContext, &psInst->asOperands[dest], TO_FLAG_DESTINATION|dataType);
+		bformata(glsl, " = %s(", name);
+		TranslateOperand(psContext, &psInst->asOperands[src0], TO_FLAG_NONE|dataType);
+		bcatcstr(glsl, ");\n");
+	}
+	else
+	{
+		//Upconvert the inputs to vec4 then apply the dest swizzle.
+		TranslateOperand(psContext, &psInst->asOperands[dest], TO_FLAG_DESTINATION|dataType);
+		if(dataType == TO_FLAG_UNSIGNED_INTEGER)
+		{
+			bcatcstr(glsl, " = uvec4(");
+		}
+		else if(dataType == TO_FLAG_INTEGER)
+		{
+			bcatcstr(glsl, " = ivec4(");
+		}
+		else
+		{
+			bcatcstr(glsl, " = vec4(");
+		}
+		bformata(glsl, "%s(", name);
+		TranslateOperand(psContext, &psInst->asOperands[src0], TO_FLAG_NONE|dataType);
+		bcatcstr(glsl, "))");
+
+		TranslateOperandSwizzle(psContext, &psInst->asOperands[dest]);
+		bcatcstr(glsl, ";\n");
+	}
+}
+
 void CallBinaryOp(HLSLCrossCompilerContext* psContext, const char* name, Instruction* psInst, 
  int dest, int src0, int src1, uint32_t dataType)
 {
@@ -3782,12 +3823,7 @@ void TranslateInstruction(HLSLCrossCompilerContext* psContext, Instruction* psIn
             AddIndentation(psContext);
             bcatcstr(glsl, "//INOT\n");
             #endif
-            AddIndentation(psContext);
-            TranslateOperand(psContext, &psInst->asOperands[0], TO_FLAG_DESTINATION);
-
-            bcatcstr(glsl, " = ~(");
-            TranslateOperand(psContext, &psInst->asOperands[1], TO_FLAG_INTEGER);
-            bcatcstr(glsl, ");\n");
+			CallUnaryOp(psContext, "~", psInst, 0, 1, TO_FLAG_INTEGER);
             break;
         }
         case OPCODE_XOR:
