@@ -881,7 +881,7 @@ static void TranslateShaderStorageLoad(HLSLCrossCompilerContext* psContext, Inst
 
 			TranslateOperand(psContext, psDest, TO_FLAG_DESTINATION);
 			if(GetNumSwizzleElements(psDest) > 1)
-				bformata(glsl, swizzleString[destComponent++]);
+				bformata(glsl, swizzleString[destComponent]);
 
 			if(psSrc->eType == OPERAND_TYPE_RESOURCE)
 			{
@@ -904,6 +904,15 @@ static void TranslateShaderStorageLoad(HLSLCrossCompilerContext* psContext, Inst
 				if(strcmp(psVarType->Name, "$Element") != 0)
 				{
 					bformata(glsl, ".%s", psVarType->Name);
+					if(psVarType->Class == SVC_MATRIX_ROWS || 
+						psVarType->Class == SVC_MATRIX_COLUMNS)
+					{
+						bformata(glsl, "[");
+						TranslateOperand(psContext, psSrcByteOff, TO_FLAG_INTEGER|TO_FLAG_UNSIGNED_INTEGER);
+						bformata(glsl, " / 16u]");
+						if(GetNumSwizzleElements(psDest) > 1)
+							bformata(glsl, swizzleString[destComponent]);
+					}
 				}
 
 				//Double takes an extra slot.
@@ -914,6 +923,7 @@ static void TranslateShaderStorageLoad(HLSLCrossCompilerContext* psContext, Inst
 			}
 
 			bformata(glsl, ";\n");
+			destComponent++;
 		}
 	}
 }
